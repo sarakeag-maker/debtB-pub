@@ -50,7 +50,7 @@ export async function POST(request: Request, { params }: Params) {
       where: { instructionId: params.id },
       select: { amount: true },
     })
-    const totalLegalCosts = costs.reduce((sum, c) => sum + c.amount.toNumber(), 0)
+    const totalCosts = costs.reduce((sum, c) => sum + c.amount.toNumber(), 0)
 
     // 3. Calculate interest
     const principal = instruction.principalAmount.toNumber()
@@ -64,19 +64,22 @@ export async function POST(request: Request, { params }: Params) {
     })
 
     // 4. Build LetterContext and generate letter buffer
+    // LetterContext uses flat fields: principal, interest, total, totalCosts
     const ctx: LetterContext = {
       reference: instruction.reference,
       stage,
       leaseholderName: instruction.leaseholderName,
       propertyAddress: instruction.propertyAddress,
+      flatRef: instruction.unit.flatRef,
       firmName: instruction.firm.name,
-      firmAddress: instruction.firm.address,
-      firmPhone: instruction.firm.phone,
-      firmEmail: instruction.firm.email,
-      principalAmount: principal,
-      interestResult,
-      totalLegalCosts,
-      generatedDate: new Date().toISOString(),
+      firmAddress: instruction.firm.address ?? '',
+      firmPhone: instruction.firm.phone ?? '',
+      firmEmail: instruction.firm.email ?? '',
+      principal,
+      interest: interestResult.interest,
+      total: interestResult.total,
+      totalCosts,
+      date: new Date(),
     }
 
     const buffer = await generateLetterBuffer(ctx)
@@ -93,7 +96,7 @@ export async function POST(request: Request, { params }: Params) {
     // 6. Return binary response
     const filename = `${instruction.reference}-${stage}.docx`
 
-    return new Response(buffer, {
+    return new Response(new Uint8Array(buffer), {
       status: 200,
       headers: {
         'Content-Type':
