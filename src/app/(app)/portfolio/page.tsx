@@ -6,11 +6,9 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { SummaryStatCards } from '@/components/analytics/SummaryStatCards'
 import { DebtByStageChart } from '@/components/analytics/DebtByStageChart'
-import { StageBadge } from '@/components/instructions/StageBadge'
 import { formatCurrency } from '@/lib/utils'
 import { calculateInterest } from '@/lib/interest'
 import { InstructionStage } from '@prisma/client'
-import Link from 'next/link'
 
 export default async function PortfolioPage() {
   const session = await getServerSession(authOptions)

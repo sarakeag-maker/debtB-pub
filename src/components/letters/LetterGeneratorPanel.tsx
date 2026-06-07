@@ -1,11 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, FileText, Loader2 } from 'lucide-react'
+import { Download, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Alert } from '@/components/ui/Alert'
 import { formatDate, formatStageLabel } from '@/lib/utils'
-import { Spinner } from '@/components/ui/Spinner'
 
 const STAGE_OPTIONS = [
   { value: 'DEMAND_LETTER', label: 'Demand Letter' },

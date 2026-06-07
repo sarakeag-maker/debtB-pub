@@ -6,7 +6,6 @@ import { calculateInterest } from '@/lib/interest'
 import { StageBadge } from './StageBadge'
 import type { InstructionSummary } from '@/types'
 import { differenceInDays } from 'date-fns'
-import { Badge } from '@/components/ui/Badge'
 
 interface InstructionTableProps {
   instructions: InstructionSummary[]
