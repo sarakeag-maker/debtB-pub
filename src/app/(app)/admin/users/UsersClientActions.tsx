@@ -43,7 +43,7 @@ export function UsersClientActions({ firmId }: UsersClientActionsProps) {
     setSubmitting(true)
 
     try {
-      const res = await fetch('/api/admin/users', {
+      const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, role, password }),
