@@ -8,7 +8,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Plus } from 'lucide-react'
 import type { InstructionSummary } from '@/types'
-import { InstructionStage, DebtType } from '@prisma/client'
 
 export default async function InstructionsPage() {
   const session = await getServerSession(authOptions)

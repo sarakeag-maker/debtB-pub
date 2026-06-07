@@ -11,7 +11,7 @@ import { LetterGeneratorPanel } from '@/components/letters/LetterGeneratorPanel'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { calculateInterest } from '@/lib/interest'
-import { ArrowRight, DollarSign, FileText, Clock } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import type { StageHistoryEntry, LegalCostEntry, LetterEntry } from '@/types'
 
 interface PageProps {
