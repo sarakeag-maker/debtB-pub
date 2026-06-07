@@ -1,0 +1,51 @@
+{
+  "name": "debtb-pub",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@prisma/client": "^5.17.0",
+    "next-auth": "^4.24.7",
+    "bcryptjs": "^2.4.3",
+    "papaparse": "^5.4.1",
+    "docx": "^8.5.0",
+    "date-fns": "^3.6.0",
+    "recharts": "^2.12.7",
+    "react-hook-form": "^7.52.1",
+    "@hookform/resolvers": "^3.9.0",
+    "zod": "^3.23.8",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.4.0",
+    "lucide-react": "^0.400.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/papaparse": "^5.3.14",
+    "typescript": "^5",
+    "tailwindcss": "^3.4.6",
+    "postcss": "^8",
+    "autoprefixer": "^10.4.19",
+    "prisma": "^5.17.0",
+    "ts-node": "^10.9.2",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5"
+  }
+}
