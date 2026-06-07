@@ -1,0 +1,260 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  SOLICITOR
+  CLIENT
+  MANAGING_AGENT
+}
+
+enum InstructionStage {
+  DEMAND_LETTER
+  LETTER_BEFORE_ACTION
+  CHASER
+  DRAFT_CLAIM
+  CLAIM_ISSUED
+  ENFORCEMENT
+  RESOLVED
+}
+
+enum DebtType {
+  UNDISPUTED
+  DISPUTED
+}
+
+enum DebtCategory {
+  SERVICE_CHARGE
+  GROUND_RENT
+  ADMINISTRATION_CHARGE
+  INSURANCE_CONTRIBUTION
+  OTHER
+}
+
+enum InterestType {
+  CONTRACTUAL
+  STATUTORY
+}
+
+enum CostType {
+  FIXED_FEE
+  HOURLY
+  DISBURSEMENT
+  COURT_FEE
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model Firm {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  phone     String?
+  email     String?
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users        User[]
+  properties   Property[]
+  instructions Instruction[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+  firmId       String
+  firm         Firm     @relation(fields: [firmId], references: [id])
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  managedProperties PropertyAgent[]
+  importBatches     ImportBatch[]
+  stageHistories    StageHistory[]
+  legalCosts        LegalCost[]
+
+  @@index([firmId])
+  @@index([role])
+}
+
+model Property {
+  id           String   @id @default(cuid())
+  firmId       String
+  firm         Firm     @relation(fields: [firmId], references: [id])
+  addressLine1 String
+  addressLine2 String?
+  city         String?
+  postcode     String
+  buildingName String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  units   Unit[]
+  agents  PropertyAgent[]
+
+  @@index([firmId])
+}
+
+model PropertyAgent {
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  assignedAt DateTime @default(now())
+
+  @@id([propertyId, userId])
+}
+
+model Unit {
+  id               String   @id @default(cuid())
+  propertyId       String
+  property         Property @relation(fields: [propertyId], references: [id])
+  flatRef          String
+  leaseholderName  String
+  leaseholderEmail String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  debtEntries  DebtEntry[]
+  instructions Instruction[]
+
+  @@unique([propertyId, flatRef])
+  @@index([propertyId])
+}
+
+model ImportBatch {
+  id           String       @id @default(cuid())
+  uploadedById String
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id])
+  fileName     String
+  rowCount     Int
+  status       ImportStatus @default(PENDING)
+  errorLog     String?
+  createdAt    DateTime     @default(now())
+
+  debtEntries DebtEntry[]
+
+  @@index([uploadedById])
+}
+
+model DebtEntry {
+  id            String      @id @default(cuid())
+  unitId        String
+  unit          Unit        @relation(fields: [unitId], references: [id])
+  importBatchId String?
+  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id])
+
+  description String
+  amount      Decimal      @db.Decimal(12, 2)
+  category    DebtCategory
+  dueFromDate DateTime
+  dueToDate   DateTime?
+  createdAt   DateTime     @default(now())
+  deletedAt   DateTime?
+
+  instruction Instruction?
+
+  @@index([unitId])
+}
+
+model Instruction {
+  id      String @id @default(cuid())
+  firmId  String
+  firm    Firm   @relation(fields: [firmId], references: [id])
+  reference String @unique
+
+  unitId      String
+  unit        Unit   @relation(fields: [unitId], references: [id])
+  debtEntryId String? @unique
+  debtEntry   DebtEntry? @relation(fields: [debtEntryId], references: [id])
+
+  leaseholderName String
+  propertyAddress String
+
+  principalAmount Decimal      @db.Decimal(12, 2)
+  debtType        DebtType     @default(UNDISPUTED)
+  debtCategory    DebtCategory
+  dueFromDate     DateTime
+
+  interestType    InterestType @default(STATUTORY)
+  contractualRate Decimal?     @db.Decimal(6, 4)
+
+  currentStage  InstructionStage @default(DEMAND_LETTER)
+  resolvedAt    DateTime?
+  resolvedAmount Decimal?        @db.Decimal(12, 2)
+
+  notes     String?
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stageHistories StageHistory[]
+  legalCosts     LegalCost[]
+  letters        GeneratedLetter[]
+
+  @@index([firmId])
+  @@index([unitId])
+  @@index([currentStage])
+  @@index([createdAt])
+}
+
+model StageHistory {
+  id            String           @id @default(cuid())
+  instructionId String
+  instruction   Instruction      @relation(fields: [instructionId], references: [id])
+  fromStage     InstructionStage?
+  toStage       InstructionStage
+  changedById   String
+  changedBy     User             @relation(fields: [changedById], references: [id])
+  notes         String?
+  changedAt     DateTime         @default(now())
+
+  @@index([instructionId])
+}
+
+model LegalCost {
+  id            String      @id @default(cuid())
+  instructionId String
+  instruction   Instruction @relation(fields: [instructionId], references: [id])
+  addedById     String
+  addedBy       User        @relation(fields: [addedById], references: [id])
+
+  costType    CostType
+  description String
+  amount      Decimal  @db.Decimal(10, 2)
+  recovered   Boolean  @default(false)
+  recoveredAt DateTime?
+  incurredAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([instructionId])
+}
+
+model GeneratedLetter {
+  id            String           @id @default(cuid())
+  instructionId String
+  instruction   Instruction      @relation(fields: [instructionId], references: [id])
+  stage         InstructionStage
+  generatedAt   DateTime         @default(now())
+  storageUrl    String?
+  fileData      Bytes?
+
+  @@index([instructionId])
+}
